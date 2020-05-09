@@ -12,30 +12,30 @@ labelt = train['open_channels'].values
 traindata = train['signal'].values
 
 
-def split_sequence(sequence, label, n_steps):
-    X, y = list(), list()
-    for i in range(len(sequence)):
-        end_ix = i + n_steps
-        if end_ix > len(sequence)-1:
+def seqcreator(seq, label, seqlength):
+    inpx, inpy = list(), list()
+    for i in range(len(seq)):
+        steprange = i + seqlength
+        if steprange > len(seq)-1:
             break
-        seq_x, seq_y = sequence[i:end_ix], label[i]
-        X.append(seq_x)
-        y.append(seq_y)
-    return np.array(X), np.array(y)
+        inp_seq_x, inp_seq_y = seq[i:steprange], label[i]
+        inpx.append(inp_seq_x)
+        inpy.append(inp_seq_y)
+    return np.array(inpx), np.array(inpy)
     
-def split_sequence_s(sequence, n_steps):
-    X = list()
-    for i in range(len(sequence)):
-        end_ix = i + n_steps
-        if end_ix > len(sequence)-1:
+def seqcreatorsingle(seq, seqlength):
+    inpx = list()
+    for i in range(len(seq)):
+        steprange = i + seqlength
+        if steprange > len(seq)-1:
             break
-        seq_x = sequence[i:end_ix]
-        X.append(seq_x)
-    return np.array(X)
+        inp_seq_x = seq[i:steprange]
+        inpx.append(inp_seq_x)
+    return np.array(inpx)
     
-n_step = 20
-X, y = split_sequence(traindata[0:3000000], labelt[0:3000000], n_step)
-X = X.reshape(len(X), n_step, 1)
+seqlength = 20
+X, y = seqcreator(traindata[0:3000000], labelt[0:3000000], seqlength)
+X = X.reshape(len(X), seqlength, 1)
 #y = y/max(y)
 (X.shape, y.shape)
 
@@ -57,8 +57,8 @@ model.fit(X, y, batch_size = 30, epochs=2)
 test = pd.read_csv('/kaggle/input/liverpool-ion-switching/test.csv')
 test.drop(['time'], axis = 1, inplace = True)
 test = test.values
-test = split_sequence_s(test, n_step)
-test = test.reshape(len(test), n_step, 1)
+test = seqcreatorsingle(test, seqlength)
+test = test.reshape(len(test), seqlength, 1)
 test.shape
 
 prediction = model.predict(test, verbose=0)
